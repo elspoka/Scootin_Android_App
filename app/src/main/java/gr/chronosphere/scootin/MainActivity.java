@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.Chronometer;
+import android.widget.Toast;
 
 
 
@@ -53,14 +54,20 @@ public class MainActivity extends Activity implements OnClickListener
         if (a == start)
         {
             chronograph.start();
+            Toast.makeText(getApplicationContext(),
+                    "Started!", Toast.LENGTH_SHORT).show();
         }
             else if (a == pause)
             {
                 chronograph.stop();
+                Toast.makeText(getApplicationContext(),
+                        "Paused!", Toast.LENGTH_SHORT).show();
             }
                 else if (a == reset)
                 {
                  chronograph.setBase(SystemClock.elapsedRealtime());
+                 Toast.makeText(getApplicationContext(),
+                            "Stopped!", Toast.LENGTH_SHORT).show();
                 }
     }
 }
