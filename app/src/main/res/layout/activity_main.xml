@@ -7,7 +7,7 @@
     android:background="#e6e6fa"
     tools:context=".MainActivity">
 
-    <TextView android:text="@string/hello_world"
+    <TextView android:text="@string/top_text"
         android:textSize="35dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
