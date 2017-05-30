@@ -3,7 +3,6 @@ package gr.chronosphere.scootin;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -19,6 +18,7 @@ public class MainActivity extends Activity implements OnClickListener
     private Button pause;
     private Button reset;
     private Chronometer chronograph;
+    private long LastStopTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -39,13 +39,13 @@ public class MainActivity extends Activity implements OnClickListener
         chronograph = (Chronometer) findViewById(R.id.mainchronometer);
         }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu)
-    {
+   // @Override
+   // public boolean onCreateOptionsMenu(Menu menu)
+   // {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
+        //getMenuInflater().inflate(R.menu.menu_main, menu);
+   //     return true;
+   // }
 
 
     @Override
@@ -53,13 +53,23 @@ public class MainActivity extends Activity implements OnClickListener
     {
         if (a == start)
         {
+            if ( LastStopTime == 0 )
+                chronograph.setBase(SystemClock.elapsedRealtime());
+                // on resume after pause
+            else
+            {
+                long intervalOnPause = (SystemClock.elapsedRealtime() - LastStopTime);
+                chronograph.setBase(chronograph.getBase() + intervalOnPause );
+            }
+
             chronograph.start();
             Toast.makeText(getApplicationContext(),
-                    "Started!", Toast.LENGTH_SHORT).show();
+            "Started!", Toast.LENGTH_SHORT).show();
         }
             else if (a == pause)
             {
                 chronograph.stop();
+                LastStopTime = SystemClock.elapsedRealtime();
                 Toast.makeText(getApplicationContext(),
                         "Paused!", Toast.LENGTH_SHORT).show();
             }
