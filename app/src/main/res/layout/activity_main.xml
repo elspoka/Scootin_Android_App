@@ -25,7 +25,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="PAUSE"
+        android:text="@string/button_pause"
         android:id="@+id/pausebutton"
         android:layout_below="@+id/startbutton"
         android:layout_centerHorizontal="true" />
@@ -33,7 +33,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="RESET"
+        android:text="@string/button_reset"
         android:id="@+id/resetbutton"
         android:layout_below="@+id/pausebutton"
         android:layout_centerHorizontal="true" />
