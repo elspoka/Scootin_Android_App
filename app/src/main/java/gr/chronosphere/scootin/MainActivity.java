@@ -18,7 +18,8 @@ public class MainActivity extends Activity implements OnClickListener
     private Button pause;
     private Button reset;
     private Chronometer chronograph;
-    private long LastStopTime;
+    private long LastStopTime=0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -55,7 +56,7 @@ public class MainActivity extends Activity implements OnClickListener
         {
             if ( LastStopTime == 0 )
                 chronograph.setBase(SystemClock.elapsedRealtime());
-                // on resume after pause
+             // on resume after pause
             else
             {
                 long intervalOnPause = (SystemClock.elapsedRealtime() - LastStopTime);
@@ -63,21 +64,22 @@ public class MainActivity extends Activity implements OnClickListener
             }
 
             chronograph.start();
+            LastStopTime = 0;
             Toast.makeText(getApplicationContext(),
-            "Started!", Toast.LENGTH_SHORT).show();
+                    "Started!", Toast.LENGTH_SHORT).show();
         }
-            else if (a == pause)
-            {
-                chronograph.stop();
-                LastStopTime = SystemClock.elapsedRealtime();
-                Toast.makeText(getApplicationContext(),
-                        "Paused!", Toast.LENGTH_SHORT).show();
-            }
-                else if (a == reset)
-                {
-                 chronograph.setBase(SystemClock.elapsedRealtime());
-                 Toast.makeText(getApplicationContext(),
-                            "Stopped!", Toast.LENGTH_SHORT).show();
-                }
+        else if (a == pause)
+        {
+            chronograph.stop();
+            LastStopTime = SystemClock.elapsedRealtime();
+            Toast.makeText(getApplicationContext(),
+                    "Paused!", Toast.LENGTH_SHORT).show();
+        }
+        else if (a == reset)
+        {
+            chronograph.setBase(SystemClock.elapsedRealtime());
+            Toast.makeText(getApplicationContext(),
+                    "Stopped!", Toast.LENGTH_SHORT).show();
+        }
     }
 }
