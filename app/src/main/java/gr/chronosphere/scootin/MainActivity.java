@@ -18,7 +18,7 @@ public class MainActivity extends Activity implements OnClickListener
     private Button pause;
     private Button reset;
     private Chronometer chronograph;
-    private long LastStopTime=0;
+    private long TimePaused=0;
 
 
     @Override
@@ -26,10 +26,10 @@ public class MainActivity extends Activity implements OnClickListener
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        rsw();
+        scootin();
     }
 
-    public void rsw()
+    public void scootin()
         {
         start = (Button) findViewById(R.id.startbutton);
         start.setOnClickListener(this);
@@ -54,24 +54,24 @@ public class MainActivity extends Activity implements OnClickListener
     {
         if (a == start)
         {
-            if ( LastStopTime == 0 )
+            if (  TimePaused == 0 )
                 chronograph.setBase(SystemClock.elapsedRealtime());
              // on resume after pause
             else
             {
-                long intervalOnPause = (SystemClock.elapsedRealtime() - LastStopTime);
+                long intervalOnPause = (SystemClock.elapsedRealtime() - TimePaused);
                 chronograph.setBase(chronograph.getBase() + intervalOnPause );
             }
 
             chronograph.start();
-            LastStopTime = 0;
+            TimePaused = 0;
             Toast.makeText(getApplicationContext(),
                     "Started!", Toast.LENGTH_SHORT).show();
         }
         else if (a == pause)
         {
             chronograph.stop();
-            LastStopTime = SystemClock.elapsedRealtime();
+            TimePaused = SystemClock.elapsedRealtime();
             Toast.makeText(getApplicationContext(),
                     "Paused!", Toast.LENGTH_SHORT).show();
         }
