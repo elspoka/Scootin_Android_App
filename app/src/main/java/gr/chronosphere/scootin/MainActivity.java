@@ -1,85 +1,114 @@
 package gr.chronosphere.scootin;
 
-import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.Chronometer;
-import android.widget.Toast;
+import android.widget.TextView;
 
 
-
-public class MainActivity extends Activity implements OnClickListener
-{
+public class MainActivity extends AppCompatActivity {
 
     private Button start;
     private Button pause;
     private Button reset;
-    private Chronometer chronograph;
-    private long TimePaused=0;
+    TextView textView;
+
+    long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L;
+    Handler handler;
+    int Seconds, Minutes, MilliSeconds;
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         scootin();
     }
 
-    public void scootin()
-        {
+    public void scootin() {
+        textView = (TextView) findViewById(R.id.textView);
         start = (Button) findViewById(R.id.startbutton);
-        start.setOnClickListener(this);
         pause = (Button) findViewById(R.id.pausebutton);
-        pause.setOnClickListener(this);
         reset = (Button) findViewById(R.id.resetbutton);
-        reset.setOnClickListener(this);
-        chronograph = (Chronometer) findViewById(R.id.mainchronometer);
-        }
+        handler = new Handler();
 
-   // @Override
-   // public boolean onCreateOptionsMenu(Menu menu)
-   // {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
-   //     return true;
-   // }
+        start.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+                StartTime = SystemClock.uptimeMillis();
+                handler.postDelayed(runnable, 0);
 
-    @Override
-    public void onClick(View a)
-    {
-        if (a == start)
-        {
-            if (  TimePaused == 0 )
-                chronograph.setBase(SystemClock.elapsedRealtime());
-             // on resume after pause
-            else
-            {
-                long intervalOnPause = (SystemClock.elapsedRealtime() - TimePaused);
-                chronograph.setBase(chronograph.getBase() + intervalOnPause );
+                reset.setEnabled(false);
+
             }
+        });
 
-            chronograph.start();
-            TimePaused = 0;
-            Toast.makeText(getApplicationContext(),
-                    "Started!", Toast.LENGTH_SHORT).show();
-        }
-        else if (a == pause)
-        {
-            chronograph.stop();
-            TimePaused = SystemClock.elapsedRealtime();
-            Toast.makeText(getApplicationContext(),
-                    "Paused!", Toast.LENGTH_SHORT).show();
-        }
-        else if (a == reset)
-        {
-            chronograph.setBase(SystemClock.elapsedRealtime());
-            Toast.makeText(getApplicationContext(),
-                    "Stopped!", Toast.LENGTH_SHORT).show();
-        }
+        pause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                TimeBuff += MillisecondTime;
+
+                handler.removeCallbacks(runnable);
+
+                reset.setEnabled(true);
+
+            }
+        });
+
+        reset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                MillisecondTime = 0L;
+                StartTime = 0L;
+                TimeBuff = 0L;
+                UpdateTime = 0L;
+                Seconds = 0;
+                Minutes = 0;
+                MilliSeconds = 0;
+
+                textView.setText("00:00:00");
+            }
+        });
+
     }
+
+
+  /*  @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+*/
+    public Runnable runnable = new Runnable() {
+
+        public void run() {
+
+            MillisecondTime = SystemClock.uptimeMillis() - StartTime;
+
+            UpdateTime = TimeBuff + MillisecondTime;
+
+            Seconds = (int) (UpdateTime / 1000);
+
+            Minutes = Seconds / 60;
+
+            Seconds = Seconds % 60;
+
+            MilliSeconds = (int) (UpdateTime % 1000);
+
+            textView.setText("" + Minutes + ":"
+                    + String.format("%02d", Seconds) + ":"
+                    + String.format("%03d", MilliSeconds));
+
+            handler.postDelayed(this, 0);
+        }
+
+    };
 }
