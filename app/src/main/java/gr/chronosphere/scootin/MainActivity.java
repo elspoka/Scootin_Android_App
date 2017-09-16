@@ -103,9 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
             MilliSeconds = (int) (UpdateTime % 1000);
 
-            textView.setText("" + Minutes + ":"
-                    + String.format("%02d", Seconds) + ":"
-                    + String.format("%03d", MilliSeconds));
+            textView.setText("" + Minutes + ":" + String.format("%02d", Seconds) + ":" + String.format("%03d", MilliSeconds));
 
             handler.postDelayed(this, 0);
         }
