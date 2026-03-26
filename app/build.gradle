@@ -1,15 +1,38 @@
 apply plugin: 'com.android.application'
 
+// ---------------------------------------------------------------------------
+// Git-based versioning
+//   versionCode  = total commit count  (auto-increments with every commit)
+//   versionName  = latest git tag      (e.g. v1.0.5  →  set with: git tag v1.0.5)
+// ---------------------------------------------------------------------------
+def gitVersionCode() {
+    try {
+        def stdout = new ByteArrayOutputStream()
+        exec { commandLine 'git', 'rev-list', '--count', 'HEAD'; standardOutput = stdout }
+        return stdout.toString().trim().toInteger()
+    } catch (ignored) { return 1 }
+}
+
+def gitVersionName() {
+    try {
+        def stdout = new ByteArrayOutputStream()
+        // describe finds the nearest tag; falls back to commit hash if no tag exists
+        exec { commandLine 'git', 'describe', '--tags', '--always'; standardOutput = stdout }
+        return stdout.toString().trim()
+    } catch (ignored) { return "0.0.1-dev" }
+}
+// ---------------------------------------------------------------------------
+
 android {
-    compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    namespace 'gr.chronosphere.scootin'
+    compileSdk 34
 
     defaultConfig {
         applicationId "gr.chronosphere.scootin"
-        minSdkVersion 14
-        targetSdkVersion 26
-        versionCode 5
-        versionName "1.0.5"
+        minSdk 21
+        targetSdk 34
+        versionCode gitVersionCode()
+        versionName gitVersionName()
     }
     buildTypes {
         release {
@@ -18,9 +41,14 @@ android {
             debuggable false
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:26.0.2'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 }

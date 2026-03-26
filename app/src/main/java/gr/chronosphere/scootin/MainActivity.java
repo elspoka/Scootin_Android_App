@@ -2,111 +2,121 @@ package gr.chronosphere.scootin;
 
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
+import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.TextView;
 
-
 public class MainActivity extends AppCompatActivity {
+
+    private static final int TICK_INTERVAL_MS = 10; // 10ms is plenty for millisecond display
 
     private Button start;
     private Button pause;
     private Button reset;
-    TextView textView;
+    private TextView textView;
 
-    long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L;
-    Handler handler;
-    int Seconds, Minutes, MilliSeconds;
-
+    private long millisecondTime, startTime, timeBuff, updateTime = 0L;
+    private Handler handler;
+    private int seconds, minutes, milliSeconds;
+    private boolean isRunning = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        scootin();
-    }
 
-    public void scootin() {
-        textView = (TextView) findViewById(R.id.textView);
-        start = (Button) findViewById(R.id.startbutton);
-        pause = (Button) findViewById(R.id.pausebutton);
-        reset = (Button) findViewById(R.id.resetbutton);
-        handler = new Handler();
+        // Fix: use Handler(Looper.getMainLooper()) — new Handler() is deprecated since API 30
+        handler = new Handler(Looper.getMainLooper());
 
-        start.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        textView = findViewById(R.id.textView);
+        start    = findViewById(R.id.startbutton);
+        pause    = findViewById(R.id.pausebutton);
+        reset    = findViewById(R.id.resetbutton);
 
-                StartTime = SystemClock.uptimeMillis();
-                handler.postDelayed(runnable, 0);
-
-                reset.setEnabled(false);
-
+        // Restore timer state after rotation
+        if (savedInstanceState != null) {
+            timeBuff  = savedInstanceState.getLong("timeBuff");
+            isRunning = savedInstanceState.getBoolean("isRunning");
+            updateDisplay(timeBuff);
+            if (isRunning) {
+                startTime = SystemClock.uptimeMillis();
+                handler.postDelayed(runnable, TICK_INTERVAL_MS);
             }
-        });
-
-        pause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                TimeBuff += MillisecondTime;
-
-                handler.removeCallbacks(runnable);
-
-                reset.setEnabled(true);
-
-            }
-        });
-
-        reset.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                MillisecondTime = 0L;
-                StartTime = 0L;
-                TimeBuff = 0L;
-                UpdateTime = 0L;
-                Seconds = 0;
-                Minutes = 0;
-                MilliSeconds = 0;
-
-                textView.setText("00:00:00");
-            }
-        });
-
-    }
-
-
-  /*  @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-*/
-    public Runnable runnable = new Runnable() {
-
-        public void run() {
-
-            MillisecondTime = SystemClock.uptimeMillis() - StartTime;
-
-            UpdateTime = TimeBuff + MillisecondTime;
-
-            Seconds = (int) (UpdateTime / 1000);
-
-            Minutes = Seconds / 60;
-
-            Seconds = Seconds % 60;
-
-            MilliSeconds = (int) (UpdateTime % 1000);
-
-            textView.setText("" + Minutes + ":" + String.format("%02d", Seconds) + ":" + String.format("%03d", MilliSeconds));
-
-            handler.postDelayed(this, 0);
+            updateButtonStates();
         }
 
+        start.setOnClickListener(v -> {
+            if (!isRunning) {
+                startTime = SystemClock.uptimeMillis();
+                handler.postDelayed(runnable, TICK_INTERVAL_MS);
+                isRunning = true;
+                updateButtonStates();
+            }
+        });
+
+        pause.setOnClickListener(v -> {
+            if (isRunning) {
+                timeBuff += millisecondTime;
+                handler.removeCallbacks(runnable);
+                isRunning = false;
+                updateButtonStates();
+            }
+        });
+
+        reset.setOnClickListener(v -> {
+            handler.removeCallbacks(runnable);
+            millisecondTime = 0L;
+            startTime       = 0L;
+            timeBuff        = 0L;
+            updateTime      = 0L;
+            seconds         = 0;
+            minutes         = 0;
+            milliSeconds    = 0;
+            isRunning       = false;
+            textView.setText("00:00:00");
+            updateButtonStates();
+        });
+    }
+
+    private void updateButtonStates() {
+        start.setEnabled(!isRunning);
+        pause.setEnabled(isRunning);
+        reset.setEnabled(!isRunning);
+    }
+
+    private void updateDisplay(long elapsed) {
+        int secs  = (int) (elapsed / 1000);
+        int mins  = secs / 60;
+        secs      = secs % 60;
+        int ms    = (int) (elapsed % 1000);
+        textView.setText(
+            String.format("%02d:%02d:%03d", mins, secs, ms)
+        );
+    }
+
+    private final Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            millisecondTime = SystemClock.uptimeMillis() - startTime;
+            updateTime      = timeBuff + millisecondTime;
+            updateDisplay(updateTime);
+            // Fix: was postDelayed(this, 0) — a tight loop that pinned the CPU at 100%
+            handler.postDelayed(this, TICK_INTERVAL_MS);
+        }
     };
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong("timeBuff", isRunning ? timeBuff + (SystemClock.uptimeMillis() - startTime) : timeBuff);
+        outState.putBoolean("isRunning", isRunning);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(runnable);
+    }
 }
