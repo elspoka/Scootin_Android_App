@@ -2,6 +2,11 @@
 /local.properties
 /.idea/workspace.xml
 /.idea/libraries
+/.idea/caches/
+/.idea/copilotDiffState.xml
+/.idea/markdown.xml
+/.idea/AndroidProjectSystem.xml
 .DS_Store
 /build
 /captures
+*.iml

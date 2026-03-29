@@ -25,12 +25,12 @@ def gitVersionName() {
 
 android {
     namespace 'gr.chronosphere.scootin'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "gr.chronosphere.scootin"
-        minSdk 21
-        targetSdk 34
+        minSdk 26
+        targetSdk 35
         versionCode gitVersionCode()
         versionName gitVersionName()
     }
@@ -42,8 +42,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 

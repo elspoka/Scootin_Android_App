@@ -110,10 +110,14 @@ if $darwin; then
     GRADLE_OPTS="$GRADLE_OPTS \"-Xdock:name=$APP_NAME\" \"-Xdock:icon=$APP_HOME/media/gradle.icns\""
 fi
 
-# For Cygwin, switch paths to Windows format before running java
+# For Cygwin and MSYS/MinGW, switch paths to Windows format before running java
 if $cygwin ; then
     APP_HOME=`cygpath --path --mixed "$APP_HOME"`
     CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
+elif $msys ; then
+    APP_HOME=`(cd "$APP_HOME"; pwd -W) 2>/dev/null || echo "$APP_HOME"`
+    CLASSPATH=`(cd "$APP_HOME"; echo "${CLASSPATH//$APP_HOME/.}" ) 2>/dev/null || echo "$CLASSPATH"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH" 2>/dev/null || echo "$CLASSPATH"`
 
     # We build the pattern for arguments to be converted via cygpath
     ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
