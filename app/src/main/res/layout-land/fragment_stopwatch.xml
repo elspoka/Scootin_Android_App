@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape stopwatch: vertical flow, all 4 buttons in one row -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_color"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    tools:context=".MainActivity">
+
+    <!-- Timer display — full width, compact -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:text="@string/timer_default"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        android:textColor="@color/timer_color"
+        android:fontFamily="monospace" />
+
+    <!-- All 4 buttons in one row to save vertical space -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="46dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button
+            android:id="@+id/startbutton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginEnd="3dp"
+            android:text="@string/button_start"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/lapbutton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:enabled="false"
+            android:text="@string/button_lap"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/pausebutton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:enabled="false"
+            android:text="@string/button_pause"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/resetbutton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            android:text="@string/button_reset"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- LAPS header -->
+    <TextView
+        android:id="@+id/lapsHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/laps_header"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/accent_color"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:letterSpacing="0.15"
+        android:visibility="gone" />
+
+    <!-- Lap list — fills remaining space, scrollable -->
+    <ScrollView
+        android:id="@+id/lapScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="vertical"
+        android:fadeScrollbars="false"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/lapContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+</LinearLayout>
+
+

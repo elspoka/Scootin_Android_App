@@ -3,4 +3,26 @@
     <string name="button_start">START</string>
     <string name="button_pause">PAUSE</string>
     <string name="button_reset">RESET</string>
+    <string name="button_lap">LAP</string>
+    <string name="laps_header">LAPS</string>
+
+    <!-- Navigation drawer -->
+    <string name="nav_stopwatch">Stopwatch</string>
+    <string name="nav_about">About &amp; Privacy</string>
+    <string name="nav_group_info">Info</string>
+    <string name="drawer_open">Open navigation menu</string>
+    <string name="drawer_close">Close navigation menu</string>
+
+    <!-- About fragment -->
+    <string name="about_tagline">A clean, minimal stopwatch for Android</string>
+    <string name="about_description">No ads. No tracking. No nonsense.</string>
+    <string name="about_source_label">SOURCE CODE</string>
+    <string name="about_github_button">View on GitHub →</string>
+    <string name="about_privacy_label">PRIVACY &amp; DATA</string>
+    <string name="about_privacy_text">This app does not collect, store, share, or transmit any personal data. There are no analytics, no ads, and no network access of any kind.</string>
+    <string name="about_license_label">LICENSE</string>
+    <string name="about_license_text">Open source under GPL-3.0. See the repository for the full license text.</string>
+    <string name="timer_default">00:00.000</string>
+    <string name="version_format">v%s</string>
+    <string name="github_url">https://github.com/elspoka/Scootin_Android_App</string>
 </resources>

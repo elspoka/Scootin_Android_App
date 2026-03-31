@@ -3,4 +3,6 @@
     <color name="background_color">#F5F5F5</color>
     <color name="timer_color">#212121</color>
     <color name="accent_color">#1976D2</color>
+    <color name="lap_row_odd">#FFFFFF</color>
+    <color name="lap_row_even">#EEF2F7</color>
 </resources>

@@ -1,122 +1,158 @@
 package gr.chronosphere.scootin;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.SystemClock;
+import android.view.MenuItem;
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-import android.widget.Button;
-import android.widget.TextView;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity {
+/**
+ * MainActivity — the single Activity that hosts the entire app.
+ *
+ * Architecture: one Activity + multiple Fragments (single-activity pattern).
+ *   • StopwatchFragment  — default / home screen
+ *   • AboutFragment      — about, privacy policy, GitHub link
+ *   (future: CountdownFragment, SettingsFragment, …)
+ *
+ * Navigation: Navigation Drawer (hamburger ☰ in the ActionBar).
+ *   Fragments are switched using hide/show — NOT replace — so that
+ *   StopwatchFragment stays alive in memory while the user browses
+ *   About, keeping the timer running without interruption.
+ *
+ * Back-press handling:
+ *   1. If the drawer is open  → close the drawer.
+ *   2. If About is visible    → return to Stopwatch.
+ *   3. Otherwise              → default behaviour (exit / back stack).
+ */
+public class MainActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final int TICK_INTERVAL_MS = 10; // 10ms is plenty for millisecond display
+    // The DrawerLayout wraps the entire screen; swiping from the left
+    // edge or tapping the hamburger icon opens/closes the drawer.
+    private DrawerLayout      drawerLayout;
+    private NavigationView    navigationView;
 
-    private Button start;
-    private Button pause;
-    private Button reset;
-    private TextView textView;
-
-    private long millisecondTime, startTime, timeBuff, updateTime = 0L;
-    private Handler handler;
-    private int seconds, minutes, milliSeconds;
-    private boolean isRunning = false;
+    // Fragment instances are created once in onCreate and reused for
+    // the lifetime of the Activity.  After a rotation we recover them
+    // from the FragmentManager by their tag strings.
+    private StopwatchFragment stopwatchFragment;
+    private AboutFragment     aboutFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main);   // DrawerLayout shell
 
-        // Fix: use Handler(Looper.getMainLooper()) — new Handler() is deprecated since API 30
-        handler = new Handler(Looper.getMainLooper());
+        drawerLayout   = findViewById(R.id.drawerLayout);
+        navigationView = findViewById(R.id.navigationView);
+        navigationView.setNavigationItemSelectedListener(this);
 
-        textView = findViewById(R.id.textView);
-        start    = findViewById(R.id.startbutton);
-        pause    = findViewById(R.id.pausebutton);
-        reset    = findViewById(R.id.resetbutton);
+        // ActionBarDrawerToggle draws the animated hamburger ↔ arrow icon
+        // and synchronises its state with the DrawerLayout automatically.
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout,
+                R.string.drawer_open, R.string.drawer_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();   // make the icon match the current drawer state on launch
+        if (getSupportActionBar() != null)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);  // show the icon
 
-        // Restore timer state after rotation
-        if (savedInstanceState != null) {
-            timeBuff  = savedInstanceState.getLong("timeBuff");
-            isRunning = savedInstanceState.getBoolean("isRunning");
-            updateDisplay(timeBuff);
-            if (isRunning) {
-                startTime = SystemClock.uptimeMillis();
-                handler.postDelayed(runnable, TICK_INTERVAL_MS);
-            }
-            updateButtonStates();
+        // ── Fragment setup ────────────────────────────────────────────────
+        if (savedInstanceState == null) {
+            // First launch: create both fragments and add them to the container.
+            // AboutFragment starts hidden; only StopwatchFragment is visible.
+            stopwatchFragment = new StopwatchFragment();
+            aboutFragment     = new AboutFragment();
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragmentContainer, stopwatchFragment, "stopwatch")
+                    .add(R.id.fragmentContainer, aboutFragment,     "about")
+                    .hide(aboutFragment)   // drawer shows Stopwatch by default
+                    .commit();
+            navigationView.setCheckedItem(R.id.nav_stopwatch);  // highlight in drawer
+        } else {
+            // After rotation: the FragmentManager has already recreated both
+            // fragments; we just need to grab references to them by their tags.
+            stopwatchFragment = (StopwatchFragment) getSupportFragmentManager()
+                    .findFragmentByTag("stopwatch");
+            aboutFragment     = (AboutFragment) getSupportFragmentManager()
+                    .findFragmentByTag("about");
         }
 
-        start.setOnClickListener(v -> {
-            if (!isRunning) {
-                startTime = SystemClock.uptimeMillis();
-                handler.postDelayed(runnable, TICK_INTERVAL_MS);
-                isRunning = true;
-                updateButtonStates();
+        // ── Back-press handling ───────────────────────────────────────────
+        // Using the modern OnBackPressedDispatcher API (onBackPressed() is
+        // deprecated since API 33 / Android 13).
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    // Priority 1: close the drawer if it is open.
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else if (aboutFragment != null && aboutFragment.isVisible()) {
+                    // Priority 2: return to Stopwatch from About.
+                    showFragment(stopwatchFragment, aboutFragment);
+                    navigationView.setCheckedItem(R.id.nav_stopwatch);
+                } else {
+                    // Priority 3: fall through to the system default behaviour
+                    // (finish the Activity or navigate up the back stack).
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
             }
         });
-
-        pause.setOnClickListener(v -> {
-            if (isRunning) {
-                timeBuff += millisecondTime;
-                handler.removeCallbacks(runnable);
-                isRunning = false;
-                updateButtonStates();
-            }
-        });
-
-        reset.setOnClickListener(v -> {
-            handler.removeCallbacks(runnable);
-            millisecondTime = 0L;
-            startTime       = 0L;
-            timeBuff        = 0L;
-            updateTime      = 0L;
-            seconds         = 0;
-            minutes         = 0;
-            milliSeconds    = 0;
-            isRunning       = false;
-            textView.setText("00:00:00");
-            updateButtonStates();
-        });
     }
 
-    private void updateButtonStates() {
-        start.setEnabled(!isRunning);
-        pause.setEnabled(isRunning);
-        reset.setEnabled(!isRunning);
-    }
+    // ── NavigationView item selection ─────────────────────────────────────
 
-    private void updateDisplay(long elapsed) {
-        int secs  = (int) (elapsed / 1000);
-        int mins  = secs / 60;
-        secs      = secs % 60;
-        int ms    = (int) (elapsed % 1000);
-        textView.setText(
-            String.format("%02d:%02d:%03d", mins, secs, ms)
-        );
-    }
-
-    private final Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            millisecondTime = SystemClock.uptimeMillis() - startTime;
-            updateTime      = timeBuff + millisecondTime;
-            updateDisplay(updateTime);
-            // Fix: was postDelayed(this, 0) — a tight loop that pinned the CPU at 100%
-            handler.postDelayed(this, TICK_INTERVAL_MS);
+    /**
+     * Called when the user taps a row in the navigation drawer.
+     * We show the selected fragment, hide the other, and close the drawer.
+     * Adding new screens in the future only requires adding an else-if here
+     * and creating the corresponding Fragment + menu item.
+     */
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.nav_stopwatch) {
+            showFragment(stopwatchFragment, aboutFragment);
+        } else if (id == R.id.nav_about) {
+            showFragment(aboutFragment, stopwatchFragment);
         }
-    };
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putLong("timeBuff", isRunning ? timeBuff + (SystemClock.uptimeMillis() - startTime) : timeBuff);
-        outState.putBoolean("isRunning", isRunning);
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;   // mark the item as selected (highlights it in the drawer)
     }
 
+    /**
+     * Shows [target] and hides [other] in a single atomic transaction.
+     *
+     * We use hide/show instead of replace so that the hidden fragment keeps
+     * its view and instance state alive — critical for StopwatchFragment
+     * because its timer Handler must keep running while About is visible.
+     */
+    private void showFragment(Fragment target, Fragment other) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.show(target).hide(other).commit();
+    }
+
+    // ── ActionBar home button (hamburger icon) ───────────────────────────
+
+    /**
+     * Intercepts taps on the home/hamburger icon in the ActionBar to
+     * toggle the navigation drawer open or closed.
+     */
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        handler.removeCallbacks(runnable);
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START))
+                drawerLayout.closeDrawer(GravityCompat.START);
+            else
+                drawerLayout.openDrawer(GravityCompat.START);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
